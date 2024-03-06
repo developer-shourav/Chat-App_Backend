@@ -1,0 +1,45 @@
+version: "3"
+services:
+  mongo:
+    container_name: mongo
+    hostname: mongo
+    image: mongo
+    restart: on-failure
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=alice
+      - MONGO_INITDB_ROOT_PASSWORD=gsfd436rdsfg
+      - MONGO_INITDB_DATABASE=bestchat
+    ports:
+      - "127.0.0.1:27017:27017"
+    networks:
+      - node-network
+    volumes:
+      - "./mongodb:/data/db"
+      - "./docker-entrypoint-initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro"
+
+  server:
+    build: server/
+    command: node index.js # здесь можно перезаписать CMD из Dockerfile в /server
+    ports:
+      - "5000:5000"
+    networks:
+      - node-network
+    links:
+      - mongo
+
+  client:
+    build: client/
+    command: npm start # здесь можно перезаписать CMD из Dockerfile в /client
+    ports:
+      - "3000:3000"
+    networks:
+      - node-network
+    depends_on:
+      - server
+
+volumes:
+  mongodb:
+
+networks:
+  node-network:
+    driver: bridge
